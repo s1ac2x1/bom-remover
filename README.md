@@ -6,8 +6,11 @@ Usage is as simple as it source code:
 run.bat $sourceFolder $mask $type $deep
 
 $sourceFolder - root folder to scan files in
+
 $mask - files mask
+
 $type - processing type. Currently there is just one type: default
+
 $deep - whether to scan subfolders of root folder (y/n)
 
 example: run.bat C:\test *.xml default y

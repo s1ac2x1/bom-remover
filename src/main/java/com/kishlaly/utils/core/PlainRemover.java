@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import com.kishlaly.utils.config.AbstractRemover;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.maven.internal.commons.io.ByteOrderMark;
 import org.apache.maven.internal.commons.io.input.BOMInputStream;
@@ -54,7 +55,8 @@ public class PlainRemover extends AbstractRemover {
 		String src = parameters.getSrc();
 		String mask = parameters.getMask();
 		File directory = new File(src);
-		Collection filesCollection = FileUtils.listFiles(directory, new WildcardFileFilter(mask), DirectoryFileFilter.DIRECTORY);
+		IOFileFilter subfolders = parameters.isDeep() ? DirectoryFileFilter.DIRECTORY : null;
+		Collection filesCollection = FileUtils.listFiles(directory, new WildcardFileFilter(mask), subfolders);
 		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		for (Object obj : filesCollection) {
 			PROCESSED++;

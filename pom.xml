@@ -47,8 +47,10 @@
                     <executable>java</executable>
                     <mainClass>com.kishlaly.utils.Main</mainClass>
                     <arguments>
-                        <argument>${src}</argument>
+                        <argument>${folder}</argument>
                         <argument>${mask}</argument>
+						<argument>${type}</argument>
+						<argument>${deep}</argument>
                     </arguments>
                 </configuration>
             </plugin>

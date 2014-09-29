@@ -1,1 +1,1 @@
-mvn clean install exec:java -Dexec.classpathScope=test -e -Dsrc=%1 -Dmask=%2
+mvn clean install exec:java -Dexec.classpathScope=test -e -Dfolder=%1 -Dmask=%2 -Dtype=%3 -Ddeep=%4

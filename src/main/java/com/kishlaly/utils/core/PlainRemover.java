@@ -8,7 +8,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +30,9 @@ import org.apache.maven.internal.commons.io.input.BOMInputStream;
  *         Date: 29.09.2014
  */
 public class PlainRemover extends AbstractRemover {
+
+	private List<Long> times = new ArrayList<>();
+	private Long totalTime = new Long(0);
 
 	public PlainRemover(Parameters parameters) {
 		super(parameters);
@@ -56,7 +63,9 @@ public class PlainRemover extends AbstractRemover {
 		String mask = parameters.getMask();
 		File directory = new File(src);
 		IOFileFilter subfolders = parameters.isDeep() ? DirectoryFileFilter.DIRECTORY : null;
+		System.out.println("\n=========================\nCollecting files...\n");
 		Collection filesCollection = FileUtils.listFiles(directory, new WildcardFileFilter(mask), subfolders);
+		System.out.printf("Found %d %s files. Begin processing...\n\n", filesCollection.size(), mask);
 		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		for (Object obj : filesCollection) {
 			PROCESSED++;
@@ -71,7 +80,19 @@ public class PlainRemover extends AbstractRemover {
 		executorService.shutdown();
 		try {
 			executorService.awaitTermination(3, TimeUnit.HOURS);
-			System.out.printf("\n=========================\n\nFinished.\n\nUpdated %d of %d files\n\n=========================\n\n", UPDATED, PROCESSED);
+			long max = times.size() > 0 ? Collections.max(times) : 0;
+			long min = times.size() > 0 ? Collections.min(times) : 0;
+			System.out.println("\nDone.");
+			if (max > 0) {
+				String totalSeconds = new BigDecimal(totalTime).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
+				System.out.printf("\nProcessed %d files in %ss\n", UPDATED, totalSeconds);
+				String minSeconds = new BigDecimal(min).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
+				String maxSeconds = new BigDecimal(max).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
+				System.out.printf("Min processing time is %ss and max processing time is %ss \n", minSeconds, maxSeconds);
+			} else {
+				System.out.printf("\nProcessed %d out of %d files\n", UPDATED, PROCESSED);
+			}
+			System.out.println("\n\n=========================\n");
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -81,6 +102,7 @@ public class PlainRemover extends AbstractRemover {
 	private void process(File file) {
 		int bomLength = checkBOM(file);
 		if (bomLength > 0) {
+			long before = System.nanoTime();
 			long truncatedSize = file.length() - bomLength;
 			byte[] cache = new byte[(int)(truncatedSize)];
 			try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
@@ -103,6 +125,10 @@ public class PlainRemover extends AbstractRemover {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			long after = System.nanoTime();
+			long diff = after - before;
+			times.add(diff);
+			totalTime += diff;
 		}
 	}
 

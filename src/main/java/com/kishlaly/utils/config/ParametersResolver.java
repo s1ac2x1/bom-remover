@@ -2,6 +2,8 @@ package com.kishlaly.utils.config;
 
 import com.kishlaly.utils.core.Parameters;
 
+import java.util.Arrays;
+
 /**
  * @author Vladimir Kishlaly
  *         Date: 29.09.2014
@@ -17,7 +19,7 @@ public class ParametersResolver {
 		if (args.length < 4) {
 			System.out.println("Usage: folder mask type deep");
 			System.out.println("Example: 'C:\\test *.xml default y' will process all *.xml in all found subfolders of C:\\test using default processing");
-			System.out.println("Available processing types: " + Type.values());
+			System.out.println("Available processing types: " + Arrays.toString(Type.values()).toLowerCase());
 			System.exit(1);
 		} else {
 			folder = args[0];

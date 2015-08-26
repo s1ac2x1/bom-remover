@@ -6,7 +6,8 @@
 
     <groupId>com.kishlaly.utils</groupId>
     <artifactId>bom-remover</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
@@ -40,18 +41,22 @@
                 <version>2.3</version>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.3.2</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
                 <configuration>
-                    <executable>java</executable>
-                    <mainClass>com.kishlaly.utils.Main</mainClass>
-                    <arguments>
-                        <argument>${folder}</argument>
-                        <argument>${mask}</argument>
-						<argument>${type}</argument>
-						<argument>${deep}</argument>
-                    </arguments>
+                    <archive>
+                        <index>true</index>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.kishlaly.utils.Main</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <mode>development</mode>
+                            <url>${project.url}</url>
+                            <key>value</key>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>

@@ -35,3 +35,6 @@ Java 1.7+
   <version>1.0</version>
 </dependency>
 ```
+###### Maven plugin
+
+Another simple usage of that tool is to set [this maven plugin](http://github.com/s1ac2x1/bom-remover-maven)

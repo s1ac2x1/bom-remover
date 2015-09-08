@@ -10,14 +10,9 @@ java -jar target/bom-remover-1.0.jar -f $folder [-m mask1] [-m mask2] [-m maskN]
 3. -r -- whether to scan subfolders of root folder, switched off by default
 
 ###### Examples
-* java -jar target/bom-remover-1.0.jar -f /Users/me
-will process all files in /Users/me folder
-
-* java -jar target/bom-remover-1.0.jar -f C:\test -r
-will process all files in C:\test folder and all subfolders
-
-* java -jar target/bom-remover-1.0.jar -f /usr/docs -m *.txt -m *.java -m ?Class*.hs -r
-will process all files based upon given masks in /usr/doc folder and it's subfolders
+* java -jar target/bom-remover-1.0.jar -f /Users/me -- will process all files in /Users/me folder
+* java -jar target/bom-remover-1.0.jar -f C:\test -r -- will process all files in C:\test folder and all subfolders
+* java -jar target/bom-remover-1.0.jar -f /usr/docs -m *.txt -m *.java -m ?Class*.hs -r -- will process all files based upon given masks in /usr/doc folder and it's subfolders
 
 Processing type was added for convenience in future (maybe sometimes I will improve algorithm with more fast and least buggy processing)
 Tool will find all files (if any) and remove any BOM types from them: utf-8, utf-16 or utf-32.

@@ -11,11 +11,13 @@ public class Parameters {
 	private String src;
 	private String[] masks;
 	private boolean recursively;
+    private boolean ready;
 
-	private Parameters(String src, String[] masks, boolean deep) {
+	private Parameters(String src, String[] masks, boolean deep, boolean ready) {
 		this.src = src;
 		this.masks = masks;
 		this.recursively = deep;
+        this.ready = ready;
 	}
 
 	public static class Builder {
@@ -38,8 +40,8 @@ public class Parameters {
 			return this;
 		}
 
-		public Parameters build() {
-			return new Parameters(src, masks, recursively);
+		public Parameters build(boolean ready) {
+			return new Parameters(src, masks, recursively, ready);
 		}
 
 	}
@@ -56,4 +58,7 @@ public class Parameters {
 		return recursively;
 	}
 
+    public boolean isReady() {
+        return ready;
+    }
 }

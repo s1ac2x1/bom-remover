@@ -13,8 +13,10 @@ public class Main {
 
     public static void main(String[] args) {
         Parameters parameters = new ParametersResolver(args).buildParameters();
-        Remover remover = Factory.getInstance(parameters);
-        remover.work();
+        if (parameters.isReady()) {
+            Remover remover = Factory.getInstance(parameters);
+            remover.work();
+        }
     }
 
 }

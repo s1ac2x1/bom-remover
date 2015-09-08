@@ -14,6 +14,7 @@ public class ParametersResolver {
     private static String folder;
     private static String[] masks;
     private static boolean recursively = false;
+    private static boolean ready;
 
     public ParametersResolver(String[] args) {
         Options options = new Options();
@@ -39,12 +40,13 @@ public class ParametersResolver {
                 if (cmd.hasOption('r')) {
                     recursively = true;
                 }
+                ready = true;
             } else {
                 System.out.println("Usage: -f folder [-m mask1] [-m mask2] [-m maskN] [-r]");
                 System.exit(1);
             }
         } catch (ParseException e) {
-            System.out.println("Error while parsing parameters + " + e.getLocalizedMessage());
+            System.out.println(e.getLocalizedMessage());
         }
     }
 
@@ -53,7 +55,7 @@ public class ParametersResolver {
                 .folder(folder)
                 .mask(masks)
                 .recursively(recursively)
-                .build();
+                .build(ready);
     }
 
 }

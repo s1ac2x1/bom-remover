@@ -9,45 +9,37 @@ import com.kishlaly.utils.config.Type;
 public class Parameters {
 
 	private String src;
-	private String mask;
-	private Type type;
-	private boolean deep;
+	private String[] masks;
+	private boolean recursively;
 
-	private Parameters(String src, String mask, Type type, boolean deep) {
+	private Parameters(String src, String[] masks, boolean deep) {
 		this.src = src;
-		this.mask = mask;
-		this.type = type;
-		this.deep = deep;
+		this.masks = masks;
+		this.recursively = deep;
 	}
 
 	public static class Builder {
 		private String src;
-		private String mask;
-		private Type type;
-		private boolean deep;
+		private String[] masks;
+		private boolean recursively;
 
 		public Builder folder(String src) {
 			this.src = src;
 			return this;
 		}
 
-		public Builder mask(String mask) {
-			this.mask = mask;
+		public Builder mask(String[] masks) {
+			this.masks = masks;
 			return this;
 		}
 
-		public Builder type(Type type) {
-			this.type = type;
-			return this;
-		}
-
-		public Builder deep(boolean deep) {
-			this.deep = deep;
+		public Builder recursively(boolean recursively) {
+			this.recursively = recursively;
 			return this;
 		}
 
 		public Parameters build() {
-			return new Parameters(src, mask, type, deep);
+			return new Parameters(src, masks, recursively);
 		}
 
 	}
@@ -56,16 +48,12 @@ public class Parameters {
 		return src;
 	}
 
-	public String getMask() {
-		return mask;
+	public String[] getMasks() {
+		return masks;
 	}
 
-	public Type getType() {
-		return type;
-	}
-
-	public boolean isDeep() {
-		return deep;
+	public boolean isRecursively() {
+		return recursively;
 	}
 
 }

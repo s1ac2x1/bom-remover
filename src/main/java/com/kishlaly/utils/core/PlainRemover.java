@@ -1,13 +1,14 @@
 package com.kishlaly.utils.core;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.kishlaly.utils.config.AbstractRemover;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.maven.internal.commons.io.ByteOrderMark;
+import org.apache.maven.internal.commons.io.input.BOMInputStream;
+
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,119 +18,115 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.kishlaly.utils.config.AbstractRemover;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.apache.maven.internal.commons.io.ByteOrderMark;
-import org.apache.maven.internal.commons.io.input.BOMInputStream;
-
 /**
  * @author Vladimir Kishlaly
  *         Date: 29.09.2014
  */
 public class PlainRemover extends AbstractRemover {
 
-	private List<Long> times = new ArrayList<>();
-	private Long totalTime = new Long(0);
+    private List<Long> times = new ArrayList<>();
+    private Long totalTime = new Long(0);
 
-	public PlainRemover(Parameters parameters) {
-		super(parameters);
-	}
+    public PlainRemover(Parameters parameters) {
+        super(parameters);
+    }
 
-	@Override
-	public int checkBOM(File file) {
-		int result = 0;
-		try (
-				FileInputStream fileInputStream = new FileInputStream(file);
-				BOMInputStream bomIn = new BOMInputStream(fileInputStream,
-						ByteOrderMark.UTF_8,
-						ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE,
-						ByteOrderMark.UTF_32LE, ByteOrderMark.UTF_16BE);
-		) {
-			if (bomIn.hasBOM()) {
-				result = bomIn.getBOM().length();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return result;
-	}
+    @Override
+    public int checkBOM(File file) {
+        int result = 0;
+        try (
+                FileInputStream fileInputStream = new FileInputStream(file);
+                BOMInputStream bomIn = new BOMInputStream(fileInputStream,
+                        ByteOrderMark.UTF_8,
+                        ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE,
+                        ByteOrderMark.UTF_32LE, ByteOrderMark.UTF_16BE)
+        ) {
+            if (bomIn.hasBOM()) {
+                result = bomIn.getBOM().length();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
 
-	@Override
-	public void work() {
-		String src = parameters.getSrc();
-		String mask = parameters.getMask();
-		File directory = new File(src);
-		IOFileFilter subfolders = parameters.isDeep() ? DirectoryFileFilter.DIRECTORY : null;
-		System.out.println("\n=========================\nCollecting files...\n");
-		Collection filesCollection = FileUtils.listFiles(directory, new WildcardFileFilter(mask), subfolders);
-		System.out.printf("Found %d %s files. Begin processing...\n\n", filesCollection.size(), mask);
-		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		for (Object obj : filesCollection) {
-			PROCESSED++;
-			final File file = (File) obj;
-			executorService.submit(new Runnable() {
-				@Override
-				public void run() {
-					process(file);
-				}
-			});
-		}
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(3, TimeUnit.HOURS);
-			long max = times.size() > 0 ? Collections.max(times) : 0;
-			long min = times.size() > 0 ? Collections.min(times) : 0;
-			System.out.println("\nDone.");
-			if (max > 0) {
-				String totalSeconds = new BigDecimal(totalTime).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
-				System.out.printf("\nProcessed %d files in %ss\n", UPDATED, totalSeconds);
-				String minSeconds = new BigDecimal(min).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
-				String maxSeconds = new BigDecimal(max).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
-				System.out.printf("Min processing time is %ss and max processing time is %ss \n", minSeconds, maxSeconds);
-			} else {
-				System.out.printf("\nProcessed %d out of %d files\n", UPDATED, PROCESSED);
-			}
-			System.out.println("\n\n=========================\n");
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+    @Override
+    public void work() {
+        String src = parameters.getSrc();
+        String[] masks = parameters.getMasks();
+        File directory = new File(src);
+        IOFileFilter subfolders = parameters.isRecursively() ? DirectoryFileFilter.DIRECTORY : null;
+        Collection filesCollection = FileUtils.listFiles(directory, new WildcardFileFilter(masks), subfolders);
+        int foundFiles = filesCollection.size();
+        System.out.printf("Found %d files\n", foundFiles);
+        if (foundFiles == 0) {
+            System.out.println("Nothing to process");
+            System.exit(0);
+        } else {
+            System.out.println("Begin processing");
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        for (Object obj : filesCollection) {
+            PROCESSED++;
+            final File file = (File) obj;
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    process(file);
+                }
+            });
+        }
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(3, TimeUnit.HOURS);
+            long max = times.size() > 0 ? Collections.max(times) : 0;
+            long min = times.size() > 0 ? Collections.min(times) : 0;
+            if (max > 0) {
+                String totalSeconds = new BigDecimal(totalTime).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
+                System.out.printf("Processed %d files in %ss\n", UPDATED, totalSeconds);
+                String minSeconds = new BigDecimal(min).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
+                String maxSeconds = new BigDecimal(max).divide(new BigDecimal(1000000)).setScale(3, BigDecimal.ROUND_HALF_UP).toPlainString();
+                System.out.printf("Min processing time is %ss and max processing time is %ss \n", minSeconds, maxSeconds);
+            } else {
+                System.out.printf("Corrected %d out of %d files\n", UPDATED, PROCESSED);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-	}
+    }
 
-	private void process(File file) {
-		int bomLength = checkBOM(file);
-		if (bomLength > 0) {
-			long before = System.nanoTime();
-			long truncatedSize = file.length() - bomLength;
-			byte[] cache = new byte[(int)(truncatedSize)];
-			try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
-				inputStream.skip(bomLength);
-				int totalBytes = 0;
-				while (totalBytes < truncatedSize) {
-					int bytesRemaining = (int)truncatedSize - totalBytes;
-					int bytesRead = inputStream.read(cache, totalBytes, bytesRemaining);
-					if(bytesRead > 0){
-						totalBytes = totalBytes + bytesRead;
-					}
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
-				org.apache.commons.io.IOUtils.write(cache, outputStream);
-				System.out.println(file.getName());
-				UPDATED++;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			long after = System.nanoTime();
-			long diff = after - before;
-			times.add(diff);
-			totalTime += diff;
-		}
-	}
+    private void process(File file) {
+        int bomLength = checkBOM(file);
+        if (bomLength > 0) {
+            long before = System.nanoTime();
+            long truncatedSize = file.length() - bomLength;
+            byte[] cache = new byte[(int) (truncatedSize)];
+            try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
+                inputStream.skip(bomLength);
+                int totalBytes = 0;
+                while (totalBytes < truncatedSize) {
+                    int bytesRemaining = (int) truncatedSize - totalBytes;
+                    int bytesRead = inputStream.read(cache, totalBytes, bytesRemaining);
+                    if (bytesRead > 0) {
+                        totalBytes = totalBytes + bytesRead;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
+                org.apache.commons.io.IOUtils.write(cache, outputStream);
+                System.out.println(file.getName());
+                UPDATED++;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            long after = System.nanoTime();
+            long diff = after - before;
+            times.add(diff);
+            totalTime += diff;
+        }
+    }
 
 }

@@ -1,8 +1,9 @@
 package com.kishlaly.utils.config;
 
 import com.kishlaly.utils.core.Parameters;
+import org.apache.commons.cli.*;
 
-import java.util.Arrays;
+import java.io.File;
 
 /**
  * @author Vladimir Kishlaly
@@ -10,32 +11,49 @@ import java.util.Arrays;
  */
 public class ParametersResolver {
 
-	private static String folder;
-	private static String mask;
-	private static String type;
-	private static String deep;
+    private static String folder;
+    private static String[] masks;
+    private static boolean recursively = false;
 
-	public ParametersResolver(String[] args) {
-		if (args.length < 4) {
-			System.out.println("Usage: folder mask type deep");
-			System.out.println("Example: 'C:\\test *.xml default y' will process all *.xml in all found subfolders of C:\\test using default processing");
-			System.out.println("Available processing types: " + Arrays.toString(Type.values()).toLowerCase());
-			System.exit(1);
-		} else {
-			folder = args[0];
-			mask = args[1];
-			type = args[2];
-			deep = args[3];
-		}
-	}
+    public ParametersResolver(String[] args) {
+        Options options = new Options();
+        options.addOption("f", true, "folder to start with");
+        options.addOption("m", true, "file mask");
+        options.addOption("r", false, "recursively");
+        CommandLineParser parser = new PosixParser();
+        try {
+            CommandLine cmd = parser.parse(options, args);
+            if (cmd.hasOption('f')) {
+                String f = cmd.getOptionValue('f');
+                File checkFolder = new File(f);
+                if (checkFolder.exists()) {
+                    folder = f;
+                } else {
+                    System.out.println("Given folder does not exist: " + f);
+                }
+                if (cmd.hasOption('m')) {
+                    masks = cmd.getOptionValues('m');
+                } else {
+                    masks = new String[]{"*"};
+                }
+                if (cmd.hasOption('r')) {
+                    recursively = true;
+                }
+            } else {
+                System.out.println("Usage: -f folder [-m mask1] [-m mask2] [-m maskN] [-r]");
+                System.exit(1);
+            }
+        } catch (ParseException e) {
+            System.out.println("Error while parsing parameters + " + e.getLocalizedMessage());
+        }
+    }
 
-	public Parameters buildParameters() {
-		return new Parameters.Builder()
-				.folder(folder)
-				.mask(mask)
-				.type(Type.valueOf(type.toUpperCase()))
-				.deep(deep.equals("y") ?  true : false)
-				.build();
-	}
+    public Parameters buildParameters() {
+        return new Parameters.Builder()
+                .folder(folder)
+                .mask(masks)
+                .recursively(recursively)
+                .build();
+    }
 
 }

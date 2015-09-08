@@ -9,13 +9,8 @@ import com.kishlaly.utils.core.PlainRemover;
  */
 public class Factory {
 
-	public static Remover getInstance(Parameters parameters) {
-		switch (parameters.getType()) {
-			case DEFAULT:
-				return new PlainRemover(parameters);
-			default:
-				return new AbstractRemover(parameters);
-		}
-	}
+    public static Remover getInstance(Parameters parameters) {
+        return new PlainRemover(parameters);
+    }
 
 }

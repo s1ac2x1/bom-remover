@@ -30,7 +30,7 @@ public class Parameters {
 			return this;
 		}
 
-		public Builder mask(String[] masks) {
+		public Builder masks(String[] masks) {
 			this.masks = masks;
 			return this;
 		}

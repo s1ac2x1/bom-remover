@@ -61,7 +61,7 @@ public class PlainRemover extends AbstractRemover {
         System.out.printf("Found %d files\n", foundFiles);
         if (foundFiles == 0) {
             System.out.println("Nothing to process");
-            System.exit(0);
+            return;
         } else {
             System.out.println("Begin processing");
         }

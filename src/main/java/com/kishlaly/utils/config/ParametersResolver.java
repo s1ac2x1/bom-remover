@@ -19,7 +19,7 @@ public class ParametersResolver {
     public ParametersResolver(String[] args) {
         Options options = new Options();
         options.addOption("f", true, "folder to start with");
-        options.addOption("m", true, "file mask");
+        options.addOption("m", true, "file masks");
         options.addOption("r", false, "recursively");
         CommandLineParser parser = new PosixParser();
         try {
@@ -53,7 +53,7 @@ public class ParametersResolver {
     public Parameters buildParameters() {
         return new Parameters.Builder()
                 .folder(folder)
-                .mask(masks)
+                .masks(masks)
                 .recursively(recursively)
                 .build(ready);
     }

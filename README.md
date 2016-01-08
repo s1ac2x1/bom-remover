@@ -1,6 +1,6 @@
 ###### The history
 After several unsuccessful attempts to find functional and free tool for removing BOM from files,
-So I've decided to write my own.
+I've decided to write my own.
 
 ###### Usage
 java -jar target/bom-remover-launcher.jar -f $folder [-m mask1] [-m mask2] [-m maskN] [-r]

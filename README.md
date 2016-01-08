@@ -12,7 +12,7 @@ java -jar target/bom-remover-launcher.jar -f $folder [-m mask1] [-m mask2] [-m m
 ###### Examples
 * **java -jar target/bom-remover-launcher.jar -f /Users/me** -- will process all files in /Users/me folder
 * **java -jar target/bom-remover-launcher.jar -f C:\test -r** -- will process all files in C:\test folder and all subfolders
-* **java -jar target/bom-remover-launcher.jar -f /usr/docs -m *.txt -m *.java -m ?Class*.hs -r** -- will process all files based upon given masks in /usr/doc folder and it's subfolders
+* **java -jar target/bom-remover-launcher.jar -f /usr/docs -m \*.txt -m \*.java -m ?Class\*.hs -r** -- will process all files based upon given masks in /usr/doc folder and it's subfolders
 
 Processing type was added for convenience in future (maybe sometimes I will improve algorithm with more fast and least buggy processing)
 Tool will find all files (if any) and remove any BOM types from them: utf-8, utf-16 or utf-32.
